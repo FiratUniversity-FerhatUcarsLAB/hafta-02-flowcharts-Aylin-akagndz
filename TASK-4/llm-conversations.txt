@@ -1,0 +1,14 @@
+1. Genel Yapı
+“U ̈niversite ders kayıt sisteminin genel akı ̧sını a ̧cıkla: giri ̧s, ders listesi, ders se ̧cimi, kontroller, onaylama.”
+2. Kontrol Mekanizmaları
+“Ders kaydında yapılması gereken kontrolleri listele: kontenjan,  ̈on ko ̧sul, zaman  ̧cakı ̧sması, kredi limiti, danı ̧sman onayı.”
+3. Pseudocode Olu ̧sturma
+“Tu ̈m bu kontrollerle birlikte detaylı pseudocode yaz.  ̇I ̧c i ̧ce EG ̆ER- ̇ISE yapıları ve d ̈ongu ̈ler kullan.”
+
+LLM: (pseudocode üretir)
+
+“Bu pseudocode’u daha detaylı, düzenleyip atar mısın"
+LLM: (düzeltilmiş pseudocode'u gönderir)
+“Bu pseudocode’u Graphviz DOT diline  ̧cevir. Her kontrol noktasını
+diamond ile g ̈oster.”
+LLM: (DOT kodu üretir)
