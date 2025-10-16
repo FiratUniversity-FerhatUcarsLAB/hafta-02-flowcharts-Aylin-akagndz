@@ -1,0 +1,92 @@
+öğrenci no:250541011
+aylin akagündüz
+
+digraph ATM_Flowchart {
+    rankdir=TB;
+    node [fontname="Arial", style="filled", fillcolor="lightblue"];
+
+    // Şekil Tanımları
+    node [shape=oval, fillcolor="lightgreen"] basla [label="BAŞLA"];
+    node [shape=oval, fillcolor="lightcoral"] bitir [label="BİTİR"];
+    node [shape=parallelogram, fillcolor="yellow"] pin_oku [label="PIN'i OKU"];
+    node [shape=parallelogram, fillcolor="yellow"] tutar_gir [label="Çekilecek Tutarı OKU"];
+    node [shape=parallelogram, fillcolor="yellow"] tekrar_sor [label="İşlem Tekrarı Sor\n(OKU islem_tekrar)"];
+    node [shape=box, fillcolor="white"] degiskenler [label="Başlangıç Değerleri Ata\n(Bakiye, Limit, PIN_hakki)"];
+    node [shape=box, fillcolor="white"] pin_hata_islem [label="PIN_hakki = PIN_hakki - 1"];
+    node [shape=box, fillcolor="white"] islem_basari [label="Hesap Bakiye ve Limit Güncelle\nISLEM_TAMAMLANDI = DOGRU"];
+    node [shape=box, fillcolor="white"] kart_bloke_yaz [label="YAZ: Kart bloke edildi"];
+    node [shape=box, fillcolor="white"] pin_basarili_yaz [label="YAZ: PIN Doğrulama Başarılı"];
+    node [shape=box, fillcolor="white"] islem_hata_yaz [label="YAZ: İşlem hatası (Tutar/Bakiye/Limit)"];
+
+
+    node [shape=diamond, fillcolor="orange"] pin_dongu_kontrol [label="PIN_hakki > 0 VE PIN_DOGRULANDI == YANLIS mı?"];
+    node [shape=diamond, fillcolor="orange"] pin_dogru_mu [label="Girilen PIN == dogru_PIN mı?"];
+    node [shape=diamond, fillcolor="orange"] pin_hak_bitti_mi [label="PIN_hakki == 0 mı?"];
+    node [shape=diamond, fillcolor="orange"] pin_kontrol_bitis [label="PIN_DOGRULANDI == YANLIS mı?"]; // Başarısız PIN bitişi
+    node [shape=diamond, fillcolor="orange"] islem_tekrar_mi [label="islem_tekrar == 'Evet' mi?"]; // Ana döngü
+    node [shape=diamond, fillcolor="orange"] islem_tamamlandi_mi [label="ISLEM_TAMAMLANDI == YANLIS mı?"]; // Para çekme döngüsü
+    node [shape=diamond, fillcolor="orange"] tutar_20 [label="Tutar % 20 != 0 mı?"];
+    node [shape=diamond, fillcolor="orange"] bakiye_yeterli [label="Tutar > hesap_bakiye mi?"];
+    node [shape=diamond, fillcolor="orange"] limit_yeterli [label="Tutar > gunluk_limit_kalan mı?"];
+
+    // ----------------------------------------------------
+    // PIN DOĞRULAMA AŞAMASI
+    // ----------------------------------------------------
+    basla -> degiskenler;
+    degiskenler -> pin_dongu_kontrol;
+
+    // PIN Döngüsü Girişi
+    pin_dongu_kontrol -> pin_oku [label="Evet"];
+    pin_dongu_kontrol -> pin_kontrol_bitis [label="Hayır"]; // Döngü bitti (Başarıldı VEYA Hak bitti)
+
+    // PIN Kontrolü
+    pin_oku -> pin_dogru_mu;
+    pin_dogru_mu -> pin_basarili_yaz [label="Evet"];
+    pin_dogru_mu -> pin_hata_islem [label="Hayır"]; 
+
+    // Başarılı PIN Akışı
+    pin_basarili_yaz -> pin_dongu_kontrol [label="Döngüden Çık"]; // Döngü koşulu ihlali ile dışarı atlar
+
+    // Hatalı PIN Akışı
+    pin_hata_islem -> pin_hak_bitti_mi;
+    pin_hak_bitti_mi -> kart_bloke_yaz [label="Evet"]; // Hak bitti
+    pin_hak_bitti_mi -> pin_dongu_kontrol [label="Hayır"]; // Hak kaldı, döngü başına dön
+
+    // Bloke Akışı
+    kart_bloke_yaz -> pin_dongu_kontrol [label="Döngüden Çık"]; // Döngü koşulu ihlali ile dışarı atlar
+    
+    // PIN Bitiş Kontrolü
+    pin_kontrol_bitis -> bitir [label="Evet\n(PIN Başarısız/Bloke)"];
+    pin_kontrol_bitis -> islem_tekrar_mi [label="Hayır\n(PIN Başarılı, İşleme Başla)"];
+
+    // ----------------------------------------------------
+    // ANA İŞLEM DÖNGÜSÜ (islem_tekrar)
+    // ----------------------------------------------------
+    islem_tekrar_mi -> bitir [label="Hayır\n(GIT_BITIR)"];
+    islem_tekrar_mi -> islem_tamamlandi_mi [label="Evet"];
+
+    // PARA ÇEKME DÖNGÜSÜ
+    islem_tamamlandi_mi -> tekrar_sor [label="Hayır\n(İşlem Bitti)"];
+    islem_tamamlandi_mi -> tutar_gir [label="Evet"]; 
+
+    tutar_gir -> tutar_20;
+
+    // Kontroller
+    tutar_20 -> bakiye_yeterli [label="Hayır"];
+    tutar_20 -> islem_hata_yaz [label="Evet\n(Tutar Hatası)"];
+
+    bakiye_yeterli -> limit_yeterli [label="Hayır"];
+    bakiye_yeterli -> islem_hata_yaz [label="Evet\n(Bakiye Hatası)"];
+
+    limit_yeterli -> islem_basari [label="Hayır"];
+    limit_yeterli -> islem_hata_yaz [label="Evet\n(Limit Hatası)"];
+    
+    // Hata durumunda para çekme döngüsünü yeniden başlat
+    islem_hata_yaz -> tutar_gir;
+
+    // Başarılı işlem ve döngüden çıkış
+    islem_basari -> islem_tamamlandi_mi; 
+
+    // İŞLEM TEKRARI
+    tekrar_sor -> islem_tekrar_mi; 
+}
