@@ -1,0 +1,275 @@
+
+“ATM para  ̧cekme sistemi i ̧cin detaylı pseudocode yazmanı istiyorum. S ̧unları i ̧cermeli: PIN do ̆grulama (3 hak), bakiye kontrolu ̈, tutar
+kontrolu ̈ (20 TL katları), gu ̈nlu ̈k limit kontrolu ̈, i ̧slem tekrarı se ̧cene ̆gi. Tu ̈m adımları BAS ̧LA, OKU, YAZ, EG ̆ER- ̇ISE, DO ̈NGU ̈ yapılarıyla yaz.”
+
+Elbette, istenen tüm koşulları ve yapıları içeren detaylı ATM para çekme sistemi sözde kodu aşağıdadır:
+BAŞLA
+
+// Sabitler ve Başlangıç Değerleri
+dogru_PIN = 1234      // Varsayılan doğru PIN
+MAX_PIN_HAKKI = 3
+GUNLUK_LIMIT_MAX = 1000 // Örnek Günlük Maksimum Limit
+
+// Değişkenler
+PIN_hakki = MAX_PIN_HAKKI
+hesap_bakiye = 1500   // Örnek Bakiye
+gunluk_limit_kalan = GUNLUK_LIMIT_MAX
+islem_tekrar = "Evet" // Ana döngüyü başlatmak için
+kart_bloke = YANLIS
+PIN_DOGRULANDI = YANLIS
+
+// =================================================================
+// 1. PIN DOĞRULAMA AŞAMASI
+// =================================================================
+
+DOGRU_PIN_DONGUSU: DO_WHILE (PIN_hakki > 0 VE PIN_DOGRULANDI == YANLIS)
+    YAZ "Lütfen PIN’inizi girin (Kalan hak: ", PIN_hakki, "):"
+    OKU girilen_PIN
+
+    EĞER (girilen_PIN == dogru_PIN)
+        PIN_DOGRULANDI = DOGRU
+        YAZ "PIN Doğrulama Başarılı."
+        // Başarılı olursa iç döngüden çıkılır, alt aşamaya geçilir
+    DEĞİLSE
+        PIN_hakki = PIN_hakki - 1
+        YAZ "Hatalı PIN."
+        
+        EĞER (PIN_hakki == 0)
+            kart_bloke = DOGRU
+            YAZ "PIN hakkınız bitti. Kart bloke edilmiştir."
+        
+    END_EĞER
+END_DO_WHILE // DOGRU_PIN_DONGUSU
+
+// Kart bloke ise veya PIN hakkı bittiği için döngüden çıkıldıysa, işlemi bitir
+EĞER (kart_bloke == DOGRU VEYA PIN_DOGRULANDI == YANLIS)
+    GIT_BITIR
+
+// =================================================================
+// 2. ANA İŞLEM DÖNGÜSÜ (Para Çekme ve Tekrar)
+// =================================================================
+
+ANA_ISLEM_DONGUSU: DO_WHILE (islem_tekrar == "Evet")
+
+    ISLEM_BASARILI = YANLIS
+
+    PARA_CEKME_DONGUSU: DO_WHILE (ISLEM_BASARILI == YANLIS)
+        YAZ "Çekmek istediğiniz tutarı girin (20 TL katları):"
+        OKU cekilen_tutar
+
+        // A. Tutar 20 TL Katları Kontrolü
+        EĞER (cekilen_tutar % 20 != 0)
+            YAZ "HATA: Tutar 20 TL katları olmalıdır. Lütfen tekrar deneyin."
+            DEVAM_ET // Döngünün başına dön
+
+        // B. Bakiye Kontrolü
+        DEĞİLSE EĞER (cekilen_tutar > hesap_bakiye)
+            YAZ "HATA: Yetersiz bakiye. Mevcut Bakiye: ", hesap_bakiye
+            DEVAM_ET // Döngünün başına dön
+
+        // C. Günlük Limit Kontrolü
+        DEĞİLSE EĞER (cekilen_tutar > gunluk_limit_kalan)
+            YAZ "HATA: Günlük limit aşıldı. Kalan Limit: ", gunluk_limit_kalan
+            DEVAM_ET // Döngünün başına dön
+
+        // D. İşlem Başarılı
+        DEĞİLSE
+            hesap_bakiye = hesap_bakiye - cekilen_tutar
+            gunluk_limit_kalan = gunluk_limit_kalan - cekilen_tutar
+            YAZ "İşlem başarılı. Lütfen paranızı alınız."
+            YAZ "Kalan Bakiye: ", hesap_bakiye
+            ISLEM_BASARILI = DOGRU // İç döngüden çık
+
+        END_EĞER
+    END_DO_WHILE // PARA_CEKME_DONGUSU
+
+    // İşlem Tekrarı Seçeneği
+    YAZ "Başka işlem yapmak ister misiniz? (Evet/Hayır):"
+    OKU islem_tekrar
+    
+END_DO_WHILE // ANA_ISLEM_DONGUSU
+
+GIT_BITIR:
+YAZ "İşlemleriniz bitti. İyi günler dileriz."
+
+BİTİR
+
+“Bu pseudocode’u Graphviz DOT diline ̧cevir. Ba ̧sla/Bitir ic ̧in oval,
+
+girdi/ ̧cıktı ic ̧in parallelogram, i ̧slem i ̧cin box, karar i ̧cin diamond kullan.
+
+Tu ̈m okları ve etiketleri ekle.” ve düzenlenmiş sözde kodu, düzenlenmiş dot kodunu gönder.
+
+Harika, önceki analizlerde tespit edilen mantıksal karmaşıklığı gideren, temizlenmiş ve hata içermeyen sözde kodu ve buna birebir karşılık gelen DOT kodunu aşağıda bulabilirsiniz.
+
+1. Düzeltilmiş Sözde Kod (Pseudocode)
+Bu versiyon, BITIR ANA_DÖNGÜYÜ gibi atlamaları kaldırır ve akışı sadece koşullar üzerinden kontrol ederek daha standart hale getirir.
+BAŞLA
+
+// Sabitler ve Başlangıç Değerleri
+dogru_PIN = 1234      // Varsayılan doğru PIN
+MAX_PIN_HAKKI = 3
+GUNLUK_LIMIT_MAX = 1000 
+
+// Değişkenler
+PIN_hakki = MAX_PIN_HAKKI
+hesap_bakiye = 1500   
+gunluk_limit_kalan = GUNLUK_LIMIT_MAX
+islem_tekrar = "Evet" 
+kart_bloke = YANLIS
+PIN_DOGRULANDI = YANLIS
+
+// =================================================================
+// 1. PIN DOĞRULAMA AŞAMASI
+// =================================================================
+
+PIN_DOGRULAMA_DONGUSU: DO_WHILE (PIN_hakki > 0 VE PIN_DOGRULANDI == YANLIS)
+    YAZ "Lütfen PIN’inizi girin (Kalan hak: ", PIN_hakki, "):"
+    OKU girilen_PIN
+
+    EĞER (girilen_PIN == dogru_PIN)
+        PIN_DOGRULANDI = DOGRU
+        YAZ "PIN Doğrulama Başarılı."
+    DEĞİLSE
+        PIN_hakki = PIN_hakki - 1
+        YAZ "Hatalı PIN."
+        
+        EĞER (PIN_hakki == 0)
+            kart_bloke = DOGRU
+            YAZ "PIN hakkınız bitti. Kart bloke edilmiştir."
+        END_EĞER
+    END_EĞER
+END_DO_WHILE // PIN_DOGRULAMA_DONGUSU
+
+// PIN başarısız olduysa veya kart bloke ise BİTİR
+EĞER (PIN_DOGRULANDI == YANLIS)
+    GIT_BITIR
+
+// =================================================================
+// 2. ANA İŞLEM DÖNGÜSÜ (Para Çekme ve Tekrar)
+// =================================================================
+
+ANA_ISLEM_DONGUSU: DO_WHILE (islem_tekrar == "Evet")
+
+    ISLEM_TAMAMLANDI = YANLIS
+
+    PARA_CEKME_DONGUSU: DO_WHILE (ISLEM_TAMAMLANDI == YANLIS)
+        YAZ "Çekmek istediğiniz tutarı girin (20 TL katları):"
+        OKU cekilen_tutar
+
+        // A. Kontroller Sırası
+        EĞER (cekilen_tutar % 20 != 0)
+            YAZ "HATA: Tutar 20 TL katları olmalıdır."
+        DEĞİLSE EĞER (cekilen_tutar > hesap_bakiye)
+            YAZ "HATA: Yetersiz bakiye."
+        DEĞİLSE EĞER (cekilen_tutar > gunluk_limit_kalan)
+            YAZ "HATA: Günlük limit aşıldı."
+        DEĞİLSE
+            // D. İşlem Başarılı
+            hesap_bakiye = hesap_bakiye - cekilen_tutar
+            gunluk_limit_kalan = gunluk_limit_kalan - cekilen_tutar
+            YAZ "İşlem başarılı. Kalan Bakiye: ", hesap_bakiye
+            ISLEM_TAMAMLANDI = DOGRU 
+        END_EĞER
+    END_DO_WHILE // PARA_CEKME_DONGUSU
+
+    // İşlem Tekrarı Seçeneği
+    YAZ "Başka işlem yapmak ister misiniz? (Evet/Hayır):"
+    OKU islem_tekrar
+    
+END_DO_WHILE // ANA_ISLEM_DONGUSU
+
+GIT_BITIR:
+YAZ "İşlemleriniz bitti. İyi günler dileriz."
+
+BİTİR
+Düzeltilmiş DOT Kodu (Graphviz)
+Bu DOT kodu, yukarıdaki temizlenmiş sözde kod akışına tam olarak uygundur ve mantıksal akışı karmaşadan uzak şekilde görselleştirir.digraph ATM_Flowchart {
+    rankdir=TB;
+    node [fontname="Arial", style="filled", fillcolor="lightblue"];
+
+    // Şekil Tanımları
+    node [shape=oval, fillcolor="lightgreen"] basla [label="BAŞLA"];
+    node [shape=oval, fillcolor="lightcoral"] bitir [label="BİTİR"];
+    node [shape=parallelogram, fillcolor="yellow"] pin_oku [label="PIN'i OKU"];
+    node [shape=parallelogram, fillcolor="yellow"] tutar_gir [label="Çekilecek Tutarı OKU"];
+    node [shape=parallelogram, fillcolor="yellow"] tekrar_sor [label="İşlem Tekrarı Sor\n(OKU islem_tekrar)"];
+    node [shape=box, fillcolor="white"] degiskenler [label="Başlangıç Değerleri Ata\n(Bakiye, Limit, PIN_hakki)"];
+    node [shape=box, fillcolor="white"] pin_hata_islem [label="PIN_hakki = PIN_hakki - 1"];
+    node [shape=box, fillcolor="white"] islem_basari [label="Hesap Bakiye ve Limit Güncelle\nISLEM_TAMAMLANDI = DOGRU"];
+    node [shape=box, fillcolor="white"] kart_bloke_yaz [label="YAZ: Kart bloke edildi"];
+    node [shape=box, fillcolor="white"] pin_basarili_yaz [label="YAZ: PIN Doğrulama Başarılı"];
+    node [shape=box, fillcolor="white"] islem_hata_yaz [label="YAZ: İşlem hatası (Tutar/Bakiye/Limit)"];
+
+
+    node [shape=diamond, fillcolor="orange"] pin_dongu_kontrol [label="PIN_hakki > 0 VE PIN_DOGRULANDI == YANLIS mı?"];
+    node [shape=diamond, fillcolor="orange"] pin_dogru_mu [label="Girilen PIN == dogru_PIN mı?"];
+    node [shape=diamond, fillcolor="orange"] pin_hak_bitti_mi [label="PIN_hakki == 0 mı?"];
+    node [shape=diamond, fillcolor="orange"] pin_kontrol_bitis [label="PIN_DOGRULANDI == YANLIS mı?"]; // Başarısız PIN bitişi
+    node [shape=diamond, fillcolor="orange"] islem_tekrar_mi [label="islem_tekrar == 'Evet' mi?"]; // Ana döngü
+    node [shape=diamond, fillcolor="orange"] islem_tamamlandi_mi [label="ISLEM_TAMAMLANDI == YANLIS mı?"]; // Para çekme döngüsü
+    node [shape=diamond, fillcolor="orange"] tutar_20 [label="Tutar % 20 != 0 mı?"];
+    node [shape=diamond, fillcolor="orange"] bakiye_yeterli [label="Tutar > hesap_bakiye mi?"];
+    node [shape=diamond, fillcolor="orange"] limit_yeterli [label="Tutar > gunluk_limit_kalan mı?"];
+
+    // ----------------------------------------------------
+    // PIN DOĞRULAMA AŞAMASI
+    // ----------------------------------------------------
+    basla -> degiskenler;
+    degiskenler -> pin_dongu_kontrol;
+
+    // PIN Döngüsü Girişi
+    pin_dongu_kontrol -> pin_oku [label="Evet"];
+    pin_dongu_kontrol -> pin_kontrol_bitis [label="Hayır"]; // Döngü bitti (Başarıldı VEYA Hak bitti)
+
+    // PIN Kontrolü
+    pin_oku -> pin_dogru_mu;
+    pin_dogru_mu -> pin_basarili_yaz [label="Evet"];
+    pin_dogru_mu -> pin_hata_islem [label="Hayır"]; 
+
+    // Başarılı PIN Akışı
+    pin_basarili_yaz -> pin_dongu_kontrol [label="Döngüden Çık"]; // Döngü koşulu ihlali ile dışarı atlar
+
+    // Hatalı PIN Akışı
+    pin_hata_islem -> pin_hak_bitti_mi;
+    pin_hak_bitti_mi -> kart_bloke_yaz [label="Evet"]; // Hak bitti
+    pin_hak_bitti_mi -> pin_dongu_kontrol [label="Hayır"]; // Hak kaldı, döngü başına dön
+
+    // Bloke Akışı
+    kart_bloke_yaz -> pin_dongu_kontrol [label="Döngüden Çık"]; // Döngü koşulu ihlali ile dışarı atlar
+    
+    // PIN Bitiş Kontrolü
+    pin_kontrol_bitis -> bitir [label="Evet\n(PIN Başarısız/Bloke)"];
+    pin_kontrol_bitis -> islem_tekrar_mi [label="Hayır\n(PIN Başarılı, İşleme Başla)"];
+
+    // ----------------------------------------------------
+    // ANA İŞLEM DÖNGÜSÜ (islem_tekrar)
+    // ----------------------------------------------------
+    islem_tekrar_mi -> bitir [label="Hayır\n(GIT_BITIR)"];
+    islem_tekrar_mi -> islem_tamamlandi_mi [label="Evet"];
+
+    // PARA ÇEKME DÖNGÜSÜ
+    islem_tamamlandi_mi -> tekrar_sor [label="Hayır\n(İşlem Bitti)"];
+    islem_tamamlandi_mi -> tutar_gir [label="Evet"]; 
+
+    tutar_gir -> tutar_20;
+
+    // Kontroller
+    tutar_20 -> bakiye_yeterli [label="Hayır"];
+    tutar_20 -> islem_hata_yaz [label="Evet\n(Tutar Hatası)"];
+
+    bakiye_yeterli -> limit_yeterli [label="Hayır"];
+    bakiye_yeterli -> islem_hata_yaz [label="Evet\n(Bakiye Hatası)"];
+
+    limit_yeterli -> islem_basari [label="Hayır"];
+    limit_yeterli -> islem_hata_yaz [label="Evet\n(Limit Hatası)"];
+    
+    // Hata durumunda para çekme döngüsünü yeniden başlat
+    islem_hata_yaz -> tutar_gir;
+
+    // Başarılı işlem ve döngüden çıkış
+    islem_basari -> islem_tamamlandi_mi; 
+
+    // İŞLEM TEKRARI
+    tekrar_sor -> islem_tekrar_mi; 
+}
