@@ -1,0 +1,138 @@
+digraph Ders_Kayit_Sistemi {
+    rankdir=TB;
+    node [fontname="Arial", style="filled", fillcolor="lightblue"];
+
+    // =================================================================
+    // I. GİRİŞ ve HAZIRLIK
+    // =================================================================
+    node [shape=oval, fillcolor="lightgreen"] basla [label="BAŞLA"];
+    node [shape=box, fillcolor="white"] degiskenler [label="Başlangıç Değerleri\n(Kredi=0, Limit=35)"];
+    
+    // Giriş Döngüsü
+    node [shape=diamond, fillcolor="orange"] giris_dongu_kontrol [label="OTURUM_ACIK == YANLIS mı?"];
+    node [shape=parallelogram, fillcolor="yellow"] giris_oku [label="Öğrenci No/Şifre OKU"];
+    node [shape=diamond, fillcolor="orange"] giris_dogru [label="GirisDogrula() == DOĞRU mu?"];
+    node [shape=box, fillcolor="white"] giris_basarili [label="OTURUM_ACIK = DOĞRU\nOGRENCI_GPA'yı Çek"];
+    node [shape=box, fillcolor="white"] giris_hata [label="YAZ: Hata"];
+
+    // =================================================================
+    // II. DERS İŞLEM DÖNGÜSÜ
+    // =================================================================
+    node [shape=diamond, fillcolor="orange"] ders_islem_dongu [label="kayit_islem_devam == DOĞRU mu?"];
+    node [shape=parallelogram, fillcolor="yellow"] islem_secim_oku [label="İşlem Seçimi OKU\n(1:Ekle, 2:Çıkar, 3:Onayla)"];
+    
+    // İşlem Seçimi Kontrolü
+    node [shape=diamond, fillcolor="orange"] secim_ekle [label="Seçim = 1 (Ekle) mı?"];
+    node [shape=diamond, fillcolor="orange"] secim_cikar [label="Seçim = 2 (Çıkar) mı?"];
+    node [shape=box, fillcolor="white"] gecersiz_islem [label="YAZ: Geçersiz işlem"];
+
+    // ------------------------------------
+    // A. DERS EKLEME AKIŞI
+    // ------------------------------------
+    node [shape=parallelogram, fillcolor="yellow"] ders_ekle_oku [label="Eklemek istediği dersi OKU"];
+    node [shape=diamond, fillcolor="orange"] ders_kayitli [label="Ders zaten kayıtlı mı?"];
+
+    // 5 Temel Kontrol Noktası
+    node [shape=diamond, fillcolor="red"] K_1_kontenjan [label="1. Kontrol:\nKontenjan Dolu mu?"];
+    node [shape=diamond, fillcolor="red"] K_2_onkosul [label="2. Kontrol:\nÖn Koşul Gerekli/Tamamlandı mı?"];
+    node [shape=diamond, fillcolor="red"] K_3_cakisma [label="3. Kontrol:\nZaman Çakışması Var mı?"];
+    node [shape=diamond, fillcolor="red"] K_4_kredi_limit [label="4. Kontrol:\nYeni Kredi Limiti Aşıyor mu?"];
+
+    node [shape=box, fillcolor="white"] ders_ekle_basarili [label="Dersi KAYITLI_DERSLER'e ekle\nTOPLAM_KREDI güncelle"];
+    node [shape=box, fillcolor="white"] kosul_hata [label="YAZ: Kontrol Hatası Mesajı"];
+
+    // ------------------------------------
+    // B. DERS ÇIKARMA AKIŞI
+    // ------------------------------------
+    node [shape=parallelogram, fillcolor="yellow"] ders_cikar_oku [label="Çıkarılacak dersi OKU"];
+    node [shape=diamond, fillcolor="orange"] ders_cikar_kayitli [label="Ders kayıtlı mı?"];
+    node [shape=box, fillcolor="white"] ders_cikar_basarili [label="Dersi çıkar\nTOPLAM_KREDI güncelle"];
+    node [shape=box, fillcolor="white"] ders_cikar_hata [label="YAZ: Kayıtta bulunmuyor"];
+
+    // ------------------------------------
+    // C. ONAYLAMA AKIŞI
+    // ------------------------------------
+    // 5. Kontrol Noktası
+    node [shape=diamond, fillcolor="red"] K_5_danisman_onay [label="5. Kontrol:\nGPA < 2.5 mı?"]; 
+    node [shape=box, fillcolor="white"] onay_bekliyor [label="KAYIT_DURUMU = 'Onay Bekliyor'\nYAZ: Danışman Uyarısı"];
+    node [shape=box, fillcolor="white"] onay_basarili [label="KAYIT_DURUMU = 'Kayıt Başarılı'"];
+    node [shape=box, fillcolor="white"] kayit_ozeti [label="Kayıt Özetini Göster\nOnaylaKayit()"];
+    
+    node [shape=oval, fillcolor="lightcoral"] bitir [label="BİTİR"];
+
+    // =================================================================
+    // AKIŞ BAĞLANTILARI
+    // =================================================================
+    
+    // I. GİRİŞ
+    basla -> degiskenler;
+    degiskenler -> giris_dongu_kontrol;
+    giris_dongu_kontrol -> giris_oku [label="Evet"];
+    giris_dongu_kontrol -> ders_islem_dongu [label="Hayır\n(Giriş Başarılı)"]; // Başlangıç kontrolünden atla
+    giris_oku -> giris_dogru;
+    giris_dogru -> giris_basarili [label="Evet"];
+    giris_dogru -> giris_hata [label="Hayır"];
+    giris_basarili -> giris_dongu_kontrol;
+    giris_hata -> giris_dongu_kontrol;
+
+    // II. DERS İŞLEM DÖNGÜSÜ
+    ders_islem_dongu -> islem_secim_oku [label="Evet"];
+    ders_islem_dongu -> bitir [label="Hayır"];
+    islem_secim_oku -> secim_ekle;
+
+    // Seçim Yönlendirmesi
+    secim_ekle -> ders_ekle_oku [label="Evet\n(1: Ekle)"];
+    secim_ekle -> secim_cikar [label="Hayır"];
+
+    secim_cikar -> ders_cikar_oku [label="Evet\n(2: Çıkar)"];
+    secim_cikar -> K_5_danisman_onay [label="Hayır\n(3: Onayla)"]; // Onay akışına git
+    secim_cikar -> gecersiz_islem [label="Hayır\n(Diğer)"]; // Bu bağlantı koda mantıken dahil edilmiştir
+
+    // Gecersiz İşlem
+    gecersiz_islem -> ders_islem_dongu;
+
+    // ------------------------------------
+    // A. DERS EKLEME AKIŞI
+    // ------------------------------------
+    ders_ekle_oku -> ders_kayitli;
+    ders_kayitli -> kosul_hata [label="Evet\n(Kayıtlı)"];
+    ders_kayitli -> K_1_kontenjan [label="Hayır"];
+    
+    // Kontrol Zinciri (Bir Hata Olursa kosul_hata'ya gider)
+    K_1_kontenjan -> K_2_onkosul [label="Hayır"];
+    K_1_kontenjan -> kosul_hata [label="Evet\n(Kontenjan Hata)"];
+
+    K_2_onkosul -> K_3_cakisma [label="Hayır"];
+    K_2_onkosul -> kosul_hata [label="Evet\n(Ön Koşul Hata)"];
+
+    K_3_cakisma -> K_4_kredi_limit [label="Hayır"];
+    K_3_cakisma -> kosul_hata [label="Evet\n(Çakışma Hata)"];
+
+    K_4_kredi_limit -> ders_ekle_basarili [label="Hayır"];
+    K_4_kredi_limit -> kosul_hata [label="Evet\n(Kredi Hata)"];
+
+    // Sonuçlar ve Döngüye Dönüş
+    kosul_hata -> ders_islem_dongu [label="İşleme Dön"];
+    ders_ekle_basarili -> ders_islem_dongu [label="İşleme Dön"];
+
+    // ------------------------------------
+    // B. DERS ÇIKARMA AKIŞI
+    // ------------------------------------
+    ders_cikar_oku -> ders_cikar_kayitli;
+    ders_cikar_kayitli -> ders_cikar_basarili [label="Evet"];
+    ders_cikar_kayitli -> ders_cikar_hata [label="Hayır"];
+
+    ders_cikar_basarili -> ders_islem_dongu [label="İşleme Dön"];
+    ders_cikar_hata -> ders_islem_dongu [label="İşleme Dön"];
+
+    // ------------------------------------
+    // C. ONAYLAMA AKIŞI
+    // ------------------------------------
+    K_5_danisman_onay -> onay_bekliyor [label="Evet\n(GPA < 2.5)"];
+    K_5_danisman_onay -> onay_basarili [label="Hayır"];
+    
+    onay_bekliyor -> kayit_ozeti;
+    onay_basarili -> kayit_ozeti;
+    
+    kayit_ozeti -> ders_islem_dongu [label="Kaydı Onayla ve Bitir"]; // Döngü kontrolü (kayit_islem_devam=YANLIS) üzerinden BITIR'e gider
+}
