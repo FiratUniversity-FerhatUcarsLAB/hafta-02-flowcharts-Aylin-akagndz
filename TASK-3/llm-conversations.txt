@@ -1,0 +1,283 @@
+Modu ̈l 1: Randevu Alma
+“Hastane randevu sistemi i ̧cin algoritma: kimlik do ̆grulama, poliklinik se ̧cimi, doktor listesi g ̈oru ̈ntu ̈leme, uygun saatleri g ̈osterme, randevu onaylama ve SMS g ̈onderme. Pseudocode yaz.”
+Modu ̈l 2: Tahlil Sonu ̧cları
+“Tahlil sonucu g ̈oru ̈ntu ̈leme sistemi: kimlik do ̆grulama, tahlil varlı ̆gı kontrolu ̈, sonu ̧c hazır mı kontrolu ̈, g ̈oru ̈ntu ̈leme veya bekleme mesajı, PDF indirme. Pseudocode yaz.”
+Son Adım: Birle ̧stirme
+Ana menu ̈ ile iki modu ̈lu ̈ birle ̧stirin
+
+LLM: Ödevinizin ilk adımı olarak, her iki modülün ayrı ayrı sözde kodunu oluşturarak başlayabiliriz. Ardından ana menü ile birleştirme işlemini gerçekleştireceğiz.
+
+İşte istenen tüm adımları içeren birleşik sözde kod:[Pseudocode u ̈retir]
+- düzenlenmiş halini ve DOT kodunda her modu ̈lu ̈ ayrı subgraph olarak du ̈zenleyip gönderir misin
+LLM: HASTANE SİSTEMİ BİRLEŞİK DOT KODU (Subgraph Kullanılarak)
+digraph Hastane_Sistemi_Birlesik {
+    rankdir=TB;
+    node [fontname="Arial", style="filled"];
+
+    // =================================================================
+    // ANA AKIŞ: BAŞLANGIÇ & MENÜ
+    // =================================================================
+
+    node [shape=oval, fillcolor="lightgreen"] basla [label="BAŞLA"];
+    node [shape=oval, fillcolor="lightcoral"] bitir [label="BİTİR"];
+    node [shape=box, fillcolor="white"] degiskenler [label="Başlangıç Değerleri"];
+    
+    // Ana Menü Kontrolü
+    node [shape=diamond, fillcolor="orange"] sistem_dongu_kontrol [label="sistem_devam == DOĞRU mu?"];
+    node [shape=parallelogram, fillcolor="yellow"] menu_oku [label="Ana Menü Seçimi OKU\n(1: Randevu, 2: Tahlil, 3: Çıkış)"];
+    node [shape=diamond, fillcolor="orange"] secim_randevu [label="Seçim = 1 (Randevu) mı?"];
+    node [shape=diamond, fillcolor="orange"] secim_tahlil [label="Seçim = 2 (Tahlil) mı?"];
+    node [shape=box, fillcolor="white"] sistem_cikis [label="sistem_devam = YANLIS"];
+    node [shape=box, fillcolor="white"] gecersiz_secim [label="YAZ: Geçersiz seçim"];
+
+    // BAĞLANTILAR: ANA AKIŞ
+    basla -> degiskenler;
+    degiskenler -> sistem_dongu_kontrol;
+    sistem_dongu_kontrol -> menu_oku [label="Evet"];
+    sistem_dongu_kontrol -> bitir [label="Hayır"];
+    menu_oku -> secim_randevu;
+
+    secim_randevu -> secim_tahlil [label="Hayır"]; // Randevu değilse Tahlil kontrolüne git
+    secim_tahlil -> sistem_cikis [label="Hayır\n(3 veya Hata)"]; // Tahlil değilse Çıkış/Hata işle
+
+    sistem_cikis -> sistem_dongu_kontrol [label="Çıkış Seçildi"]; // 3 seçildiyse (sistem_devam=YANLIS olur, döngü sonlanır)
+    sistem_cikis -> gecersiz_secim [label="Geçersiz Seçim"];
+    gecersiz_secim -> sistem_dongu_kontrol;
+    
+    // ----------------------------------------------------
+    // MODÜL 1: RANDEVU ALMA
+    // ----------------------------------------------------
+    subgraph cluster_randevu {
+        label = "Modül 1: Randevu Alma (FONKSİYON)";
+        color = "blue";
+        
+        node [shape=box, fillcolor="lightyellow"] M1_Giris [label="Kimlik Doğrulama"];
+        node [shape=diamond, fillcolor="orange"] M1_secim_dongu [label="randevu_hazir == YANLIS mı?"];
+        node [shape=box, fillcolor="white"] M1_secim_adimlari [label="Poliklinik/Doktor/Saat Seçimi"];
+        node [shape=box, fillcolor="white"] M1_hata [label="YAZ: Geçersiz Seçim/Saat Yok"];
+        node [shape=diamond, fillcolor="orange"] M1_onay [label="Randevu Onaylandı mı?"];
+        node [shape=box, fillcolor="white"] M1_kayit [label="Kaydet, SMS Gönder"];
+        node [shape=box, fillcolor="white"] M1_iptal [label="YAZ: Randevu iptal"];
+        node [shape=box, fillcolor="grey"] M1_Cikis [label="Modül 1 Bitti"];
+
+        // Modül İçi Bağlantılar
+        M1_Giris -> M1_secim_dongu;
+        M1_secim_dongu -> M1_secim_adimlari [label="Evet"];
+        M1_secim_dongu -> M1_onay [label="Hayır\n(Hazır)"];
+        M1_secim_adimlari -> M1_secim_dongu [label="Başarısız/Hata"]; // Hata durumunda başa döner
+        M1_secim_adimlari -> M1_secim_dongu [label="Başarılı"]; // randevu_hazir=DOĞRU olur, döngüden çıkar
+
+        M1_onay -> M1_kayit [label="Evet"];
+        M1_onay -> M1_iptal [label="Hayır"];
+        M1_kayit -> M1_Cikis;
+        M1_iptal -> M1_Cikis;
+    }
+
+    // ----------------------------------------------------
+    // MODÜL 2: TAHLİL SONUÇLARI
+    // ----------------------------------------------------
+    subgraph cluster_tahlil {
+        label = "Modül 2: Tahlil Sonuçları (FONKSİYON)";
+        color = "darkgreen";
+        
+        node [shape=box, fillcolor="lightyellow"] M2_Giris [label="Kimlik Doğrulama"];
+        node [shape=diamond, fillcolor="orange"] M2_varlik [label="Tahlil Var mı?"];
+        node [shape=diamond, fillcolor="orange"] M2_hazir [label="Sonuç Hazır mı?"];
+        node [shape=box, fillcolor="white"] M2_goster [label="Sonuçları Göster / PDF İndir"];
+        node [shape=box, fillcolor="white"] M2_bekle [label="YAZ: Sonuç henüz hazır değil"];
+        node [shape=box, fillcolor="white"] M2_yok [label="YAZ: Tahlil bulunmamaktadır"];
+        node [shape=box, fillcolor="grey"] M2_Cikis [label="Modül 2 Bitti"];
+
+        // Modül İçi Bağlantılar
+        M2_Giris -> M2_varlik;
+        M2_varlik -> M2_hazir [label="Evet"];
+        M2_varlik -> M2_yok [label="Hayır"];
+        M2_yok -> M2_Cikis;
+        M2_hazir -> M2_goster [label="Evet"];
+        M2_hazir -> M2_bekle [label="Hayır"];
+        M2_goster -> M2_Cikis;
+        M2_bekle -> M2_Cikis;
+    }
+
+    // ----------------------------------------------------
+    // MODÜL İLE ANA AKIŞ ARASI BAĞLANTILAR
+    // ----------------------------------------------------
+
+    // Randevu Modülü Çağrısı
+    secim_randevu -> M1_Giris [label="Evet\n(ÇALIŞTIR Modul_Randevu_Alma)"];
+    M1_Cikis -> sistem_dongu_kontrol [label="Geri Dön"]; 
+
+    // Tahlil Modülü Çağrısı
+    secim_tahlil -> M2_Giris [label="Evet\n(ÇALIŞTIR Modul_Tahlil_Sonuclari)"];
+    M2_Cikis -> sistem_dongu_kontrol [label="Geri Dön"]; 
+}
+HASTANE SİSTEMİ BİRLEŞİK PSEUDOCODE (Randevu ve Tahlil Modülleri)
+Bu sözde kod, her iki modülü de içerir ve Ana Menü aracılığıyla birbirine bağlar
+BAŞLA // Ana Sistem Başlangıcı
+
+// =================================================================
+// I. ANA MENÜ VE MODÜL SEÇİMİ
+// =================================================================
+
+sistem_devam = DOGRU
+
+ANA_SISTEM_DONGUSU: DÖNGÜ (DURUM: sistem_devam == DOGRU)
+
+    YAZ "Hoş geldiniz. Lütfen yapmak istediğiniz işlemi seçin:"
+    YAZ "1: Randevu Al"
+    YAZ "2: Tahlil Sonuçları Görüntüle"
+    YAZ "3: Çıkış"
+    OKU ana_secim
+
+    EĞER (ana_secim == "1")
+        ÇALIŞTIR Modul_Randevu_Alma()
+    DEĞİLSE EĞER (ana_secim == "2")
+        ÇALIŞTIR Modul_Tahlil_Sonuclari()
+    DEĞİLSE EĞER (ana_secim == "3")
+        sistem_devam = YANLIS
+    DEĞİLSE
+        YAZ "Hata: Geçersiz seçim. Lütfen tekrar deneyin."
+    END_EĞER
+
+END_DÖNGÜ // ANA_SISTEM_DONGUSU
+
+YAZ "Sistemden çıkılıyor. İyi günler dileriz."
+
+BİTİR
+
+
+// ***************************************************************
+// MODÜL 1: RANDEVU ALMA İŞLEVİ
+// ***************************************************************
+
+FONKSİYON Modul_Randevu_Alma()
+
+    YAZ "--- Randevu Alma Sistemi ---"
+    kullanici_dogrulandi = YANLIS
+
+    // I. KİMLİK DOĞRULAMA
+    KIMLIK_DOGRULAMA_DONGUSU: DÖNGÜ (DURUM: kullanici_dogrulandi == YANLIS)
+        YAZ "Lütfen TC Kimlik Numaranızı ve Şifrenizi/Doğum Tarihinizi girin:"
+        OKU tc_kimlik, sifre_dogum
+
+        EĞER (KimlikBilgisiDogrula(tc_kimlik, sifre_dogum) == DOGRU)
+            kullanici_dogrulandi = DOGRU
+        DEĞİLSE
+            YAZ "Hata: Bilgileriniz hatalı. Lütfen tekrar deneyin."
+        END_EĞER
+    END_DÖNGÜ 
+
+    // II. RANDEVU SEÇİM AŞAMALARI
+    randevu_hazir = YANLIS
+
+    RANDEVU_OLUSTURMA_DONGUSU: DÖNGÜ (DURUM: randevu_hazir == YANLIS)
+
+        // Poliklinik Seçimi
+        YAZ "Lütfen randevu almak istediğiniz polikliniği seçin (ID):"
+        poliklinik_listesi = GetPoliklinikListesi()
+        YAZ poliklinik_listesi
+        OKU secilen_poliklinik
+
+        EĞER (PoliklinikGecerliMi(secilen_poliklinik) == YANLIS)
+            YAZ "Hata: Geçersiz poliklinik seçimi."
+            DEVAM_ET
+        END_EĞER
+
+        // Doktor Seçimi ve Uygun Saatleri Gösterme
+        doktor_listesi = GetUygunDoktorlar(secilen_poliklinik)
+        EĞER (doktor_listesi BOŞ_DEĞİL)
+            YAZ doktor_listesi
+            YAZ "Lütfen doktoru seçin (ID):"
+            OKU secilen_doktor
+            
+            EĞER (DoktorGecerliMi(secilen_doktor) == DOGRU)
+                uygun_saatler = GetUygunSaatler(secilen_doktor)
+                
+                EĞER (uygun_saatler BOŞ_DEĞİL)
+                    YAZ uygun_saatler
+                    YAZ "Lütfen randevu tarih ve saatinizi seçin (ID):"
+                    OKU secilen_saat_id
+                    
+                    EĞER (SaatIDGecerliMi(secilen_saat_id) == DOGRU)
+                        randevu_hazir = DOGRU
+                    DEĞİLSE
+                        YAZ "Hata: Geçersiz saat seçimi."
+                    END_EĞER
+                DEĞİLSE
+                    YAZ "Bu doktor için uygun saat yok."
+                END_EĞER
+            DEĞİLSE
+                YAZ "Hata: Geçersiz doktor seçimi."
+            END_EĞER
+        DEĞİLSE
+            YAZ "Bu poliklinikte uygun doktor yok."
+        END_EĞER
+    END_DÖNGÜ // RANDEVU_OLUSTURMA_DONGUSU
+
+    // III. RANDEVU ONAYLAMA VE BİLDİRİM
+    YAZ "Randevuyu onaylıyor musunuz? (Evet/Hayır)"
+    OKU onay_cevap
+
+    EĞER (onay_cevap == "Evet")
+        randevu_kayit_basarili = KaydetRandevu(tc_kimlik, secilen_doktor, secilen_saat_id)
+        
+        EĞER (randevu_kayit_basarili == DOGRU)
+            YAZ "Randevu başarıyla oluşturuldu."
+            cep_tel = GetKullaniciTelefon(tc_kimlik)
+            sms_icerik = "Randevunuz: " & secilen_doktor & " " & SaatIDBilgisiAl(secilen_saat_id)
+            GonderSMS(cep_tel, sms_icerik)
+            YAZ "SMS gönderildi."
+        DEĞİLSE
+            YAZ "HATA: Randevu kaydı sırasında bir sorun oluştu."
+        END_EĞER
+    DEĞİLSE
+        YAZ "Randevu oluşturma işlemi iptal edildi."
+    END_EĞER
+    
+END_FONKSİYON // Modul_Randevu_Alma
+
+// ***************************************************************
+// MODÜL 2: TAHLİL SONUÇLARI GÖRÜNTÜLEME İŞLEVİ
+// ***************************************************************
+
+FONKSİYON Modul_Tahlil_Sonuclari()
+
+    YAZ "--- Tahlil Sonuçları Sistemi ---"
+    kullanici_dogrulandi = YANLIS
+
+    // I. KİMLİK DOĞRULAMA
+    DOG_DONGUSU: DÖNGÜ (DURUM: kullanici_dogrulandi == YANLIS)
+        YAZ "Lütfen TC Kimlik Numaranızı ve Şifrenizi/Doğum Tarihinizi girin:"
+        OKU tc_kimlik, sifre_dogum
+
+        EĞER (KimlikBilgisiDogrula(tc_kimlik, sifre_dogum) == DOGRU)
+            kullanici_dogrulandi = DOGRU
+        DEĞİLSE
+            YAZ "Hata: Bilgileriniz hatalı. Lütfen tekrar deneyin."
+        END_EĞER
+    END_DÖNGÜ
+
+    // II. TAHLİL VARLIĞI VE DURUM KONTROLÜ
+    
+    EĞER (TahlilVarMi(tc_kimlik) == YANLIS)
+        YAZ "Size ait tahlil bulunmamaktadır."
+    DEĞİLSE EĞER (SonucHazirMi(tc_kimlik) == DOGRU)
+        
+        YAZ "Tahlil sonuçlarınız hazırdır ve ekranda gösteriliyor."
+        
+        YAZ "Sonucu PDF olarak indirmek ister misiniz? (Evet/Hayır)"
+        OKU pdf_cevap
+        
+        EĞER (pdf_cevap == "Evet")
+            DosyaIndir(tc_kimlik, "TahlilSonucu.pdf")
+            YAZ "Tahlil sonuçlarınız PDF olarak indirildi."
+        END_EĞER
+        
+    DEĞİLSE
+        // Bekleme Mesajı
+        YAZ "Tahlil sonuçlarınız henüz hazır değildir."
+        tahmini_sure = GetTahminiSure()
+        YAZ "Tahmini sonuçlanma süresi: ", tahmini_sure
+    END_EĞER
+    
+END_FONKSİYON // Modul_Tahlil_Sonuclari
