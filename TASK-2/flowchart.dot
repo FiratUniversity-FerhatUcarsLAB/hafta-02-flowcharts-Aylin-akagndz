@@ -1,0 +1,145 @@
+digraph E_Ticaret_Sistemi {
+    rankdir=TB;
+    node [fontname="Arial", style="filled", fillcolor="lightblue"];
+
+    // Başlangıç ve Bitiş
+    node [shape=oval, fillcolor="lightgreen"] basla [label="BAŞLA"];
+    node [shape=oval, fillcolor="lightcoral"] bitir [label="BİTİR"];
+    node [shape=box, fillcolor="white"] degiskenler [label="Başlangıç Değerleri (SEPET=Boş, vs.)"];
+
+    // ----------------------------------------------------
+    // I. KULLANICI GİRİŞİ ve OTURUM AÇMA
+    // ----------------------------------------------------
+    node [shape=diamond, fillcolor="orange"] kullanici_giris_dongu [label="kullanıcı_oturum_açtı == YANLIS mı?"];
+    node [shape=parallelogram, fillcolor="yellow"] giris_oku [label="Kullanıcı Adı/Şifre OKU"];
+    node [shape=diamond, fillcolor="orange"] kullanici_dogru [label="Kullanıcı Doğru mu?"];
+    node [shape=box, fillcolor="white"] giris_basarili [label="kullanıcı_oturum_açtı = DOĞRU\nYAZ: Hoş geldiniz"];
+    node [shape=box, fillcolor="white"] giris_hata [label="YAZ: Kullanıcı/Şifre hatalı"];
+
+    // ----------------------------------------------------
+    // II. SEPET YÖNETİMİ
+    // ----------------------------------------------------
+    node [shape=diamond, fillcolor="orange"] sepet_yonetim_dongu [label="sepete_ekle_devam == DOĞRU mu?"];
+    node [shape=parallelogram, fillcolor="yellow"] urun_oku [label="Ürün ID ve Miktar OKU"];
+    node [shape=diamond, fillcolor="orange"] urun_var_mi [label="Ürün Var mı?"];
+    node [shape=diamond, fillcolor="orange"] stok_yeterli [label="Miktar <= Stok mu?"];
+    node [shape=box, fillcolor="white"] sepete_ekle [label="Sepete Ekle\nYAZ: Ürün eklendi"];
+    node [shape=box, fillcolor="white"] stok_hata [label="YAZ: Yetersiz stok"];
+    node [shape=box, fillcolor="white"] urun_hata [label="YAZ: Ürün ID bulunamadı"];
+    node [shape=parallelogram, fillcolor="yellow"] devam_sor [label="Başka ürün sor (OKU cevap)"];
+    node [shape=box, fillcolor="white"] devam_sonlandir [label="sepete_ekle_devam = YANLIS"];
+
+    // ----------------------------------------------------
+    // III. ÖDEME ÖNCESİ KONTROLLER
+    // ----------------------------------------------------
+    node [shape=diamond, fillcolor="orange"] sepet_bos_mu [label="Sepet Boş mu?"];
+    node [shape=box, fillcolor="white"] toplam_hesapla [label="sepet_toplami Hesapla"];
+    
+    // İndirim
+    node [shape=parallelogram, fillcolor="yellow"] indirim_sor [label="İndirim Kodu OKU"];
+    node [shape=diamond, fillcolor="orange"] indirim_uygula_istiyor [label="İndirim Cevap 'Evet' mi?"];
+    node [shape=diamond, fillcolor="orange"] kod_gecerli [label="Kod Geçerli mi?"];
+    node [shape=box, fillcolor="white"] indirim_uygula [label="İndirim Hesapla ve Toplamı Güncelle"];
+    node [shape=box, fillcolor="white"] indirim_hata [label="YAZ: Geçersiz indirim kodu"];
+
+    // Kargo
+    node [shape=parallelogram, fillcolor="yellow"] adres_oku [label="Teslimat Adresi OKU"];
+    node [shape=box, fillcolor="white"] kargo_hesapla [label="Kargo Ücreti Hesapla\nGENEL_TOPLAM = Toplam + Kargo"];
+
+    // ----------------------------------------------------
+    // IV. ÖDEME AŞAMASI
+    // ----------------------------------------------------
+    node [shape=diamond, fillcolor="orange"] odeme_dongu_kontrol [label="ODEME_DURUMU == YANLIS ve tekrar_deneme == DOĞRU mu?"];
+    node [shape=parallelogram, fillcolor="yellow"] yontem_oku [label="Ödeme Yöntemi OKU"];
+    node [shape=diamond, fillcolor="orange"] kredi_karti_mi [label="Yöntem 'Kredi Kartı' mı?"];
+    node [shape=parallelogram, fillcolor="yellow"] kart_bilgi_oku [label="Kart Bilgileri OKU"];
+    node [shape=diamond, fillcolor="orange"] odeme_basarili [label="Ödeme İşlemi Başarılı mı?"];
+
+    node [shape=box, fillcolor="white"] odeme_basarili_islem [label="ODEME_DURUMU = DOĞRU\nYAZ: Ödeme başarılı"];
+    node [shape=box, fillcolor="white"] havale_islem [label="Yöntem Havale ise\nODEME_DURUMU = DOĞRU"];
+    node [shape=box, fillcolor="white"] odeme_hata_yaz [label="YAZ: Ödeme başarısız/Geçersiz Yöntem"];
+    
+    node [shape=parallelogram, fillcolor="yellow"] odeme_tekrar_sor [label="Tekrar Dene OKU"];
+    node [shape=box, fillcolor="white"] odeme_iptal [label="odeme_tekrar_deneme = YANLIS"];
+
+    // ----------------------------------------------------
+    // V. SİPARİŞ ONAYI
+    // ----------------------------------------------------
+    node [shape=diamond, fillcolor="orange"] odeme_son_durum [label="ODEME_DURUMU == DOĞRU mu?"];
+    node [shape=box, fillcolor="white"] siparis_onay [label="Stok Güncelle, Onay Maili Gönder\nYAZ: Sipariş oluşturuldu"];
+    node [shape=box, fillcolor="white"] siparis_iptal [label="YAZ: Ödeme iptal edildi"];
+
+    // ----------------------------------------------------
+    // AKIŞ BAĞLANTILARI
+    // ----------------------------------------------------
+
+    // I. KULLANICI GİRİŞİ
+    basla -> degiskenler;
+    degiskenler -> kullanici_giris_dongu;
+    kullanici_giris_dongu -> giris_oku [label="Evet"];
+    kullanici_giris_dongu -> sepet_yonetim_dongu [label="Hayır\n(Oturum Açıldı)"];
+    giris_oku -> kullanici_dogru;
+    kullanici_dogru -> giris_basarili [label="Evet"];
+    kullanici_dogru -> giris_hata [label="Hayır"];
+    giris_basarili -> kullanici_giris_dongu; 
+    giris_hata -> kullanici_giris_dongu; 
+
+    // II. SEPET YÖNETİMİ
+    sepet_yonetim_dongu -> sepet_bos_mu [label="Hayır\n(Devam Etme)"];
+    sepet_yonetim_dongu -> urun_oku [label="Evet"];
+    urun_oku -> urun_var_mi;
+    urun_var_mi -> stok_yeterli [label="Evet"];
+    urun_var_mi -> urun_hata [label="Hayır"];
+    stok_yeterli -> sepete_ekle [label="Evet"];
+    stok_yeterli -> stok_hata [label="Hayır"];
+    sepete_ekle -> devam_sor;
+    stok_hata -> devam_sor;
+    urun_hata -> devam_sor;
+    devam_sor -> sepet_yonetim_dongu;
+    
+    // III. ÖDEME ÖNCESİ KONTROLLER
+    sepet_bos_mu -> bitir [label="Evet\n(GIT_BITIR)"];
+    sepet_bos_mu -> toplam_hesapla [label="Hayır"];
+    toplam_hesapla -> indirim_uygula_istiyor;
+    
+    // İndirim
+    indirim_uygula_istiyor -> indirim_sor [label="Evet"];
+    indirim_uygula_istiyor -> adres_oku [label="Hayır"];
+    indirim_sor -> kod_gecerli;
+    kod_gecerli -> indirim_uygula [label="Evet"];
+    kod_gecerli -> indirim_hata [label="Hayır"];
+    indirim_uygula -> adres_oku;
+    indirim_hata -> adres_oku;
+
+    // Kargo
+    adres_oku -> kargo_hesapla;
+    kargo_hesapla -> odeme_dongu_kontrol;
+
+    // IV. ÖDEME AŞAMASI
+    odeme_dongu_kontrol -> odeme_son_durum [label="Hayır\n(Ödeme Bitti)"];
+    odeme_dongu_kontrol -> yontem_oku [label="Evet"];
+    yontem_oku -> kredi_karti_mi;
+    
+    // Kredi Kartı
+    kredi_karti_mi -> kart_bilgi_oku [label="Evet"];
+    kart_bilgi_oku -> odeme_basarili;
+    odeme_basarili -> odeme_basarili_islem [label="Evet"];
+    odeme_basarili -> odeme_hata_yaz [label="Hayır"];
+    
+    // Havale veya Geçersiz Yöntem
+    kredi_karti_mi -> havale_islem [label="Hayır\n(Havale mi?)"];
+    havale_islem -> odeme_hata_yaz [label="Hayır\n(Geçersiz Yöntem)"]; // Havale değilse hata
+    havale_islem -> odeme_dongu_kontrol [label="Evet\n(Havale Seçildi)"]; // Havale ise döngüden çıkar
+
+    // Ödeme Tekrar Kontrolü
+    odeme_basarili_islem -> odeme_dongu_kontrol; // ODEME_DURUMU=DOĞRU olduğu için Hayır'dan çıkar
+
+    odeme_hata_yaz -> odeme_tekrar_sor; 
+    odeme_tekrar_sor -> odeme_dongu_kontrol; // Tekrar dene kontrolüne göre döngüyü sürdürür/durdurur
+
+    // V. SİPARİŞ ONAYI
+    odeme_son_durum -> siparis_onay [label="Evet"];
+    odeme_son_durum -> siparis_iptal [label="Hayır"];
+    siparis_onay -> bitir;
+    siparis_iptal -> bitir;
+}
