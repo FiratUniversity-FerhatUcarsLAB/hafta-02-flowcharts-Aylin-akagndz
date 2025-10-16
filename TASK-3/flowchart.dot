@@ -1,0 +1,101 @@
+digraph Hastane_Sistemi_Birlesik {
+    rankdir=TB;
+    node [fontname="Arial", style="filled"];
+
+    // =================================================================
+    // ANA AKIŞ: BAŞLANGIÇ & MENÜ
+    // =================================================================
+
+    node [shape=oval, fillcolor="lightgreen"] basla [label="BAŞLA"];
+    node [shape=oval, fillcolor="lightcoral"] bitir [label="BİTİR"];
+    node [shape=box, fillcolor="white"] degiskenler [label="Başlangıç Değerleri"];
+    
+    // Ana Menü Döngü Kontrolü
+    node [shape=diamond, fillcolor="orange"] sistem_dongu_kontrol [label="sistem_devam == DOĞRU mu?"];
+    node [shape=parallelogram, fillcolor="yellow"] menu_oku [label="Ana Menü Seçimi OKU\n(1: Randevu, 2: Tahlil, 3: Çıkış)"];
+    node [shape=diamond, fillcolor="orange"] secim_randevu [label="Seçim = 1 (Randevu) mı?"];
+    node [shape=diamond, fillcolor="orange"] secim_tahlil [label="Seçim = 2 (Tahlil) mı?"];
+    node [shape=box, fillcolor="white"] sistem_cikis [label="sistem_devam = YANLIS"];
+    node [shape=box, fillcolor="white"] gecersiz_secim [label="YAZ: Geçersiz seçim"];
+
+    // BAĞLANTILAR: ANA AKIŞ
+    basla -> degiskenler;
+    degiskenler -> sistem_dongu_kontrol;
+    sistem_dongu_kontrol -> menu_oku [label="Evet"];
+    sistem_dongu_kontrol -> bitir [label="Hayır"];
+    menu_oku -> secim_randevu;
+
+    secim_randevu -> secim_tahlil [label="Hayır"];
+    secim_tahlil -> sistem_cikis [label="Hayır\n(3 veya Hata)"];
+    
+    sistem_cikis -> gecersiz_secim [label="Geçersiz Seçim"]; // (3'ten farklı ise)
+    sistem_cikis -> sistem_dongu_kontrol [label="Çıkış Seçildi"];
+    gecersiz_secim -> sistem_dongu_kontrol;
+    
+    // ----------------------------------------------------
+    // MODÜL 1: RANDEVU ALMA
+    // ----------------------------------------------------
+    subgraph cluster_randevu {
+        label = "Modül 1: Randevu Alma";
+        color = "blue";
+        
+        node [shape=box, fillcolor="lightyellow"] M1_Giris [label="Kimlik Doğrulama"];
+        node [shape=diamond, fillcolor="orange"] M1_secim_dongu [label="randevu_hazir == YANLIS mı?"];
+        node [shape=box, fillcolor="white"] M1_secim_adimlari [label="Poliklinik/Doktor/Saat Seçimi"];
+        node [shape=box, fillcolor="white"] M1_hata [label="YAZ: Geçersiz Seçim/Saat Yok"];
+        node [shape=diamond, fillcolor="orange"] M1_onay [label="Randevu Onaylandı mı?"];
+        node [shape=box, fillcolor="white"] M1_kayit [label="Kaydet, SMS Gönder"];
+        node [shape=box, fillcolor="white"] M1_iptal [label="YAZ: Randevu iptal"];
+        node [shape=box, fillcolor="grey"] M1_Cikis [label="Randevu Modülü Bitti"];
+
+        // Modül İçi Bağlantılar
+        M1_Giris -> M1_secim_dongu;
+        M1_secim_dongu -> M1_secim_adimlari [label="Evet"];
+        M1_secim_dongu -> M1_onay [label="Hayır\n(Hazır)"];
+        M1_secim_adimlari -> M1_secim_dongu [label="Başarısız"]; // Seçim/Hata durumunda başa döner
+        M1_secim_adimlari -> M1_secim_dongu [label="Başarılı"]; // randevu_hazir=DOĞRU, döngüden çıkar
+
+        M1_onay -> M1_kayit [label="Evet"];
+        M1_onay -> M1_iptal [label="Hayır"];
+        M1_kayit -> M1_Cikis;
+        M1_iptal -> M1_Cikis;
+    }
+
+    // ----------------------------------------------------
+    // MODÜL 2: TAHLİL SONUÇLARI
+    // ----------------------------------------------------
+    subgraph cluster_tahlil {
+        label = "Modül 2: Tahlil Sonuçları";
+        color = "darkgreen";
+        
+        node [shape=box, fillcolor="lightyellow"] M2_Giris [label="Kimlik Doğrulama"];
+        node [shape=diamond, fillcolor="orange"] M2_varlik [label="Tahlil Var mı?"];
+        node [shape=diamond, fillcolor="orange"] M2_hazir [label="Sonuç Hazır mı?"];
+        node [shape=box, fillcolor="white"] M2_goster [label="Sonuçları Göster / PDF İndir"];
+        node [shape=box, fillcolor="white"] M2_bekle [label="YAZ: Sonuç henüz hazır değil"];
+        node [shape=box, fillcolor="white"] M2_yok [label="YAZ: Tahlil bulunmamaktadır"];
+        node [shape=box, fillcolor="grey"] M2_Cikis [label="Tahlil Modülü Bitti"];
+
+        // Modül İçi Bağlantılar
+        M2_Giris -> M2_varlik;
+        M2_varlik -> M2_hazir [label="Evet"];
+        M2_varlik -> M2_yok [label="Hayır"];
+        M2_yok -> M2_Cikis;
+        M2_hazir -> M2_goster [label="Evet"];
+        M2_hazir -> M2_bekle [label="Hayır"];
+        M2_goster -> M2_Cikis;
+        M2_bekle -> M2_Cikis;
+    }
+
+    // ----------------------------------------------------
+    // MODÜL İLE ANA AKIŞ ARASI BAĞLANTILAR
+    // ----------------------------------------------------
+
+    // Randevu Modülü Çağrısı
+    secim_randevu -> M1_Giris [label="Evet\n(Seçim 1)"];
+    M1_Cikis -> sistem_dongu_kontrol [label="Geri Dön"]; // Modül bitince Ana Menüye dön
+
+    // Tahlil Modülü Çağrısı
+    secim_tahlil -> M2_Giris [label="Evet\n(Seçim 2)"];
+    M2_Cikis -> sistem_dongu_kontrol [label="Geri Dön"]; // Modül bitince Ana Menüye dön
+}
