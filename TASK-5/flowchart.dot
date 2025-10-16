@@ -1,0 +1,63 @@
+digraph Akilli_Ev_Guvenlik {
+    rankdir=TB;
+    node [fontname="Arial", style="filled", fillcolor="lightblue"];
+
+    // Başlangıç ve Bitiş
+    node [shape=oval, fillcolor="lightgreen"] basla [label="BAŞLA"];
+    node [shape=oval, fillcolor="lightcoral"] bitir [label="BİTİR"];
+    node [shape=box, fillcolor="white"] ayarlar [label="Sistem Ayarları\n(Mod=PASİF, Alarm=YANLIS)"];
+
+    // ANA KONTROL DÖNGÜSÜ
+    node [shape=diamond, fillcolor="orange"] dongu_kontrol [label="SISTEM_MODU != 'KAPALI' mı?"];
+    node [shape=parallelogram, fillcolor="yellow"] komut_oku [label="Kullanıcı Komutunu OKU\n(AKTİF/PASİF/KAPAT)"];
+    node [shape=diamond, fillcolor="orange"] mod_degistir [label="Komut Mod Değişikliği mi?"];
+    node [shape=box, fillcolor="white"] mod_guncelle [label="SISTEM_MODU Güncelle\n(veya Alarmı Sustur)"];
+
+    // Sensör Okuma ve Tehdit
+    node [shape=box, fillcolor="white"] sensor_oku [label="Kritik ve Güvenlik Sensörlerini Oku"];
+    node [shape=diamond, fillcolor="red"] tehdit_algilandi [label="TEHDIT_TIPI != 'YOK' mu?"];
+    
+    // Müdahale Aşaması
+    node [shape=box, fillcolor="red"] alarm_calistir [label="Alarmı Çal ve Durumu Güncelle"];
+    node [shape=diamond, fillcolor="orange"] kritik_tehdit [label="YANGIN/GAZ mı?"];
+    node [shape=box, fillcolor="white"] bildirim_gonder [label="SMS/Bildirim Gönder"];
+    node [shape=box, fillcolor="white"] acil_servis [label="Acil Servis Ara"];
+    node [shape=box, fillcolor="white"] bekle [label="BEKLE(2 SANİYE)"];
+
+    // =================================================================
+    // AKIŞ BAĞLANTILARI
+    // =================================================================
+    
+    // BAŞLANGIÇ ve DÖNGÜ GİRİŞİ
+    basla -> ayarlar;
+    ayarlar -> dongu_kontrol;
+
+    // ANA DÖNGÜ
+    dongu_kontrol -> komut_oku [label="Evet\n(Sürekli)"]; // 7/24 Çalışma
+    dongu_kontrol -> bitir [label="Hayır\n('KAPALI')"]; // Sistem Kapanışı
+
+    // KULLANICI YÖNETİMİ
+    komut_oku -> mod_degistir;
+    mod_degistir -> mod_guncelle [label="Evet"];
+    mod_degistir -> sensor_oku [label="Hayır\n(Sensör Oku)"];
+    mod_guncelle -> sensor_oku; 
+
+    // TEHDİT KONTROLÜ
+    sensor_oku -> tehdit_algilandi;
+
+    // TEHDİT MÜDAHALE
+    tehdit_algilandi -> alarm_calistir [label="Evet"];
+    tehdit_algilandi -> bekle [label="Hayır"];
+
+    alarm_calistir -> bildirim_gonder;
+    bildirim_gonder -> kritik_tehdit;
+
+    // KRİTİK KONTROL
+    kritik_tehdit -> acil_servis [label="Evet"];
+    kritik_tehdit -> bekle [label="Hayır"];
+
+    acil_servis -> bekle;
+
+    // DÖNGÜ GERİ OKU (Sonsuz Döngü Vurgusu)
+    bekle -> dongu_kontrol [label="Sürekli", style="bold", color="blue"];
+}
