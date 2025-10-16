@@ -1,0 +1,17 @@
+“Akıllı ev gu ̈venlik sistemi 7/24 c ̧alı ̧sır. Ana d ̈ongu ̈ ic ̧inde sens ̈or okuma, tehdit algılama, alarm verme ve bildirim g ̈onderme su ̈re ̧clerini i ̧ceren pseudocode yaz.”
+LLM: Elbette, 7/24 çalışan bir akıllı ev güvenlik sistemi için gereken sensör okuma, tehdit algılama, alarm verme ve bildirim gönderme süreçlerini içeren sözde kodu aşağıdadır.
+
+Bu sistem, ana döngü içinde sürekli olarak çalışacak şekilde tasarlanmıştır.
+(AKILLI EV GÜVENLİK SİSTEMİ PSEUDOCODE üretir.)
+DOT dilinde sonsuz d ̈ongu ̈yu ̈ g ̈ostermek ic ̧in geri ok kullanın ve ”Su ̈rekli” etiketi ekleyin.
+LLM:Elbette, 7/24 çalışan Akıllı Ev Güvenlik Sistemi'nin temelini oluşturan sonsuz döngüyü (veya sistem kapatılana kadar süren döngüyü) DOT dilinde gösteren akış şeması aşağıdadır.
+
+Bu DOT kodu, ana döngüyü (ANA_DONGU) gösterir ve döngünün sürekli çalıştığını belirtmek için geri oku "Sürekli" etiketiyle kullanır.
+
+AKILLI EV GÜVENLİK SİSTEMİ DOT KODU (Sonsuz Döngü Vurgusuyla) üretir
+
+Sistem "PASİF" moddayken bir "Hareket" sensörü tehdit algılarsa, sistem alarmı çalar mı? Akış bunu nasıl gösteriyor?
+LLM:Bu, DOT kodunu temel alan harika bir mantıksal akış sorusudur.
+
+Cevap: Sistem Alarm Çalmaz.
+DOT kodundaki akışa göre sistem alarmı çalmaz, çünkü güvenlik sensörleri yalnızca sistem "AKTİF" moddayken değerlendirmeye alınır.
